@@ -1,0 +1,34 @@
+\chapter{Introduction}
+
+\section{Literature Review}
+\vspace{10mm}
+ Construction of a Highly Dependable Operating System, { \em Jorrit N. Herder, Herbert Bos, Ben Gras, Philip Homburg, and Andrew S. Tanenbaum - Vrije Universiteit, De Boelelaan 1081a, 1081 HV Amsterdam, The Netherlands
+}\cite{chdos}
+\\
+\\
+This paper discusses how we can design and implement a highly dependable system { \em MINIX 3} what problems are encountered, and how they are solved. They also discuss the performance effects of the changes and evaluate how the multiserver design improves operating system dependability over monolithic designs. While the emphasis is on a more reliable operating system MINIX 3 fails to better MINIX 2 in performance. One of the changes proposed to improve performance is with the filesystem where they experimented with different block sizes.
+
+\vspace{10mm}
+
+Immediate files, { \em  Sape. J. Mullender and Andrew S Tannenbaum - Software practice and experience April 1984 }\cite{astimme}
+\\
+\\
+A efficient disk organization is proposed in this paper. The idea is store the first part of data inside the inode itself instead of storing the pointers there. As per the paper about 60.87 \% of the files in unix are lesser than 2048 bytes or less which means most of the files are short. Immediate blocks can be used to reduce the no of disk access considering most files being short.
+
+\pagebreak
+How To Manipulate the Inode Structure  { \em Karthick Jayaraman, Syracuse University } \cite{inode}
+\\ 
+\\
+The Minix filesystem is briefly explained with a note on how to manipulate and store data into the inode sturcture. Inode's internal details is explained in depth.
+
+\vspace{10mm}
+
+Operating Systems Design and Implementation Third Edition { \em Andrew S Tanenbaum, Albert S Woodhull }
+\\
+\\
+The operating system concepts are discussed in this book using the MINIX 3 operating system model and source code. Entire source code of MINIX 3 is available in this book. The book explains MINIX 3 filesystem in great detail. 
+
+%\subsubsection{<Sub-subsection title>}
+%even more text\footnote{<footnote here>}, and even more.
+
+

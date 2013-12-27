@@ -1,0 +1,21 @@
+\chapter{Work Done}
+
+\section{Setting up Minix 3 development environment}
+Installation of Minix 3 was done using Virtualbox({\em Virtualization software}) in Linux based host machine.\\
+%Please refer to Appendix I for detailed steps.
+\section{Modification of Kernel}
+\subsection{Motive}
+A small project was done to familiarise with the Minix 3 operating system code base.
+\subsection{Problem Statement}
+Print out the name of every file that is being executed by the OS.
+\subsection{Approach}
+Locate the kernel source file that implements the exec system call.\\	
+Insert a printf statement appropriately in the located file.\\
+Rebuild the entire system.
+\subsection{Solution}
+The implementation of the exec system call was found in file do\_exec.c under /usr/src/kernel/system/ of the minix source tree.\\
+The name of the process that is being executed is captured using the variable { \em name} and is printed out.\\
+The system is rebuilt using the command {\em make clean} and { \em make build} inside /usr/src/ folder. 
+
+
+

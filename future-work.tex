@@ -1,0 +1,24 @@
+\chapter{Design}
+
+Implement immediate files in MINIX 3 by making changes in the kernel code. An immediate file should be created by the operating system whenever a special option flag is passed to {\em creat/open } system call. The operating system should also report an error whenever the file exceeds 32 Bytes in size. A file created as an immediate file is always an immediate file and is never converted to a regular file.
+
+\section{Inode Structure}
+Below shown is the inode structure in Minix 3.
+
+\lstinputlisting{inode.h}
+
+The pointers to the disk block is saved in an array i\_zone each referencing a 32 bit address in the disk.This array can be used to store data when file size is lesser than 32 Bytes. 
+
+\section{Differentiating between an immediate and regular file}
+
+Minix file system uses the flag bits in the {\em const.h} header file for { \em i\_mode} variable of inode structure, so now we have to add flag bits to check for immediate files.
+
+\section{Operations on an immediate file}
+\subsection{Create}
+Create a immediate file only when the flag bit for immediate file is set. This flag must be passed to creat/open system call.
+\subsection{Read}
+Instead of reading the data from the disk block the read system call should be modified to read data from the inode itself.
+\subsection{Write}
+The write system call should be modified to write data into the inode itself and should report an error whenever the file size goes beyond 32 Bytes.
+\subsection{Delete}
+When files are deleted typically indirect disk blocks need to be freed skip this step in case of immediate file and delete the inode.
