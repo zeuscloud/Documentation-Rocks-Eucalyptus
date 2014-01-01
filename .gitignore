@@ -1,3 +1,7 @@
+#stupid gedit 
+*~
+
+#latex 
 *.acn
 *.acr
 *.alg
@@ -30,3 +34,23 @@
 *.vrb
 *.xdy
 *.tdo
+*.pdf
+
+# Object files
+*.o
+*.ko
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
