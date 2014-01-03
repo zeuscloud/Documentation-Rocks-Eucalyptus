@@ -319,7 +319,7 @@ Sync the time with the hardware clock
 \em{hwclock --systohc}
 \linebreak
 NTP in Nodes
-\em{rocks run host vm-container “ntpd -u 0.pool.ntp.org ; hwclock --systohc”}
+\em{rocks run host vm-container "ntpd -u 0.pool.ntp.org ; hwclock --systohc"}
 
 %%%%%%%%%%%%%%%%%%%%%% END OF CHAPTER THREE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -341,7 +341,6 @@ yum install http://downloads.eucalyptus.com/software/eucalyptus/3.3/centos/6/x86
 
 sed -i.backup 's/enabled = 0/enabled = 1/' eucalyptus-release.repo 
 \end{lstlisting} 
-
 On the Nodes:
 \begin{lstlisting}[language=bash]
 for i in {0..4}; do scp /etc/yum.repos.d/euca2ools-release.repo root@vm-container-0-$i:/etc/yum.repos.d/euca2ools-release.repo ; done
@@ -368,13 +367,13 @@ sed -i.backup 's/enabled = 0/enabled = 1/' elrepo.repo
 
 \subsection{Install the Eucalyptus node controller software on each planned NC host}
 \begin{lstlisting}[language=bash]
-rocks run host vm-container “yum install eucalyptus-nc”
+rocks run host vm-container "yum install eucalyptus-nc"
 \end{lstlisting}
 
 Check that the KVM device node has proper permissions.
 Run the following command:
 \begin{lstlisting}[language=bash]
-rocks run host vm-container “ls -l /dev/kvm”
+rocks run host vm-container "ls -l /dev/kvm"
 \end{lstlisting}
 Verify the output shows that the device node is owned by user root and group kvm.
 \begin{lstlisting}[language=bash]
@@ -492,7 +491,111 @@ Set up your master DNS server to forward the Eucalyptus subdomain to the primary
 \item Open /etc/named.conf and set up the eucadomain.yourdomain zone. 
 Add the following piece of code to the named.conf file.
 %%%%including the zone input file
-\lstinputlisting[language=bash]{zonefile}
+\lstinputlisting[language=bash, firstline=1, lastline=11]{zonefile}
+
+\item Create a file /etc/bind/db.zeus.nitc.ac.in and write the following code into that file.
+\lstinputlisting[language=bash, firstline=12, lastline=28]{zonefile}
+\end{enumerate}
+
+\section{CONFIGURING THE NODE CONTROLLER}
+To alleviate potential problems, we recommend performing the following steps on each NC:
+\begin{itemize}
+\item Log in to an NC server and open the /etc/eucalyptus/eucalyptus.conf file.
+\item Change the CONCURRENT\_DISK\_OPS parameter to the number of disk-intensive operations you want the NC to perform at once. On some Linux installations, a sufficiently large amount of local disk activity can slow down process scheduling. This can cause other operations (e.g., network communication and instance provisioning) appear to stall. Examples of disk-intensive operations include preparing disk images for launch and creating ephemeral storage. Set this value to 1 to serialize all disk-intensive operations. Set to a higher number to increase the amount of disk-intensive operations the NC will perform in parallel.
+\item Set DISABLE\_KEY\_INJECTION=1 to disable key injection. By default, the node controller uses the filesystem to perform key injection. This is potentially an unsafe practice.
+Copy one file, edit it and spread it to all other nodes.
+Copy
+\begin{lstlisting}[language=bash]
+scp root@vm-container-0-0:/etc/eucalyptus/eucalyptus.conf ~
+\end{lstlisting}
+Spread
+\begin{lstlisting}[language=bash]
+for i in {0..4}; do scp ~/eucalyptus.conf root@vm-container-0-$i:/etc/eucalyptus/eucalyptus.conf ; done
+\end{lstlisting}
+Uncomment 
+\begin{lstlisting}[language=bash]
+#CONCURRENT_DISK_OPS =4
+#DISABLE_KEY_INJECTION="0"
+\end{lstlisting}
+ and change their values to 
+ \begin{lstlisting}[language=bash]
+CONCURRENT_DISK_OPS =1
+DISABLE_KEY_INJECTION="1"
+\end{lstlisting}
+\end{itemize}
+\section{INCREASE WALRUS DISK SPACE}
+The size of Walrus storage must be larger than the sum of all the uploaded images. Each uploaded image requires additional space to accommodate image decryption and the creation of temporary working files. \textbf{We recommend that the Walrus storage size be three times the size of all uploaded images.}
+To increase the image cache size in Walrus:
+\begin{enumerate}
+\item Log in to the Eucalyptus Administrator Console \url{https://zeus.nitc.ac.in:8443}.
+\item Click Service Components in the Quick Links section.
+\item The Service Components page displays.
+\item Click walrus.
+\item The Properties section displays.
+\item Enter the new size 80 000 MB ( 80GB ) in the space reserved for unbundling images field.
+\item Click Save.
 
 \end{enumerate}
+
+\section{Set up security roups}
+
+In Managed and Managed (No VLAN) networking modes, you must configure the system with parameters that define how Eucalyptus will allocate and manage virtual machine networks. These virtual machine networks are known as security groups. The relevant parameters are set in the eucalyptus.conf on all machines running a CC. These parameters are:
+\begin{itemize}
+\item VNET\_SUBNET
+\item VNET\_NETMASK
+\item VNET\_ADDRSPERNET
+\end{itemize}
+The CC will read VNET\_SUBNET and VNET\_NETMASK to construct a range of IP addresses that are available to all security groups. This range will then be further divided into smaller networks based on the size specified in VNET\_ADDRSPERNET. Note that Eucalyptus reserves eleven addresses per security group, so these networks will be smaller than the value specified in VNET\_ADDRSPERNET.
+
+To configure Eucalyptus to use VLANs within a specified range:
+\begin{enumerate}
+\item Choose your range (a contiguous range of VLANs between 2 and 4095).
+\item Configure your cluster controllers with a VNET\_SUBNET, VNET\_NETMASK, VNET\_ADDRSPERNET that is large enough to encapsulate your desired range.
+\item We have VNET\_NETMASK as 255.255.0.0 and VNET\_SUBNET 10.1.0.0
+\item We should have distinct VLAN Tags for each security group.
+\item No of Security Groups is calculated by dividing VNET\_NETMASK, VNET\_ADDRSPERNET i.e (2\^16 -2)/32=2048. \\ 
+Refer \url{https://engage.eucalyptus.com/customer/portal/articles/256617-calculating-security-groups}
+\item Configure your cloud controller to work within that range. Use the following commands to verify that the range is now set to be 2-2048, a superset of the desired range.
+\begin{lstlisting}
+euca-describe-properties | grep cluster.maxnetworktag  
+euca-describe-properties | grep cluster.minnetworktag
+\end{lstlisting}
+\item Constrict the range to be within the range that the CC can support as follows:
+\begin{lstlisting}
+euca-modify-property -p cloud.network.global_max_network_tag=2050
+euca-modify-property -p cloud.network.global_min_network_tag=2
+\end{lstlisting}
+\item Make sure that the difference between the max and min value should be equal to 2048 (ie the no of security groups ).
+\end{enumerate}
+\section{Configure the load balancer}
+Installing and Registering the Load Balancer Image :
+Eucalyptus provides a tools for installing and registering the Load Balancer image. Once you have run the tool, your Load Balancer will be ready to use.
+Run the following command on the machine where you installed the eucalyptus-load-balancer-image package:
+
+\begin{lstlisting}
+euca-install-load-balancer --install-default
+\end{lstlisting}
+
+\section{Verify the load balancer configuration}
+
+If you would like to verify that Load Balancer support is enabled you can list installed Load Balancers. The currently active Load Balancer will be listed as enabled. If no Load Balancers are listed, or none are marked as enabled, then your Load Balancer support has not been configured properly.
+
+Run the following command to list installed Load Balancer images:
+\begin{lstlisting}
+euca-install-load-balancer --list
+\end{lstlisting}
+You can also check the enabled Load Balancer EMI with:
+\begin{lstlisting}
+euca-describe-properties loadbalancing.loadbalancer_emi
+\end{lstlisting}
+\begin{lstlisting}
+
+If you need to manually set the enabled Load Balancer EMI use:
+euca-modify-property -p loadbalancing.loadbalancer_emi=emi-12345678
+\end{lstlisting}
+If you need to manually set the enabled Load Balancer EMI use:
+euca-modify-property -p loadbalancing.loadbalancer_emi=emi-12345678
+
+\section{Change the administrative path}
+Change the default password for the administration user. You can do this using the euare-usermodloginprofile or by logging in to the Eucalyptus Administrator Console \url{https://zeus.nitc.ac.in:8443}. The first time you log in to the console, you are prompted for a new password.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% END OF CHAPTER SEVEN %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
