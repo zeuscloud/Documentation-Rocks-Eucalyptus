@@ -425,7 +425,7 @@ After Eucalyptus is installed and registered, perform the tasks in this section 
 
 Now that you have installed and configured Eucalyptus, you're ready to start using it. To do so, you must generate credentials.
 
-NOTE: When you run the euca_conf --get-credentials command, you are requesting the access and secret keys and an X.509 certificate and key. You cannot retrieve an existing X.509 certificate and key. You can only generate a new pair.
+NOTE: When you run the euca\_conf --get-credentials command, you are requesting the access and secret keys and an X.509 certificate and key. You cannot retrieve an existing X.509 certificate and key. You can only generate a new pair.
 
 To generate a set of credentials :
 \begin{lstlisting}[language=bash]
@@ -481,7 +481,7 @@ euca-modify-property -p bootstrap.webservices.use_instance_dns=true
 
 Note : Please read for DNS and creating a zone file before attempting to the steps given below.
 \begin{enumerate}
-\item A good wiki article is available for understanding dns http://en.wikipedia.org/wiki/Zone_file .
+\item A good wiki article is available for understanding dns \url{http://en.wikipedia.org/wiki/Zone_file .}
 \item A you should always look @ the original documentation provided by eucalyptus \url{http://www.eucalyptus.com/docs/eucalyptus/3.2/ig/setting_up_dns.html#setting_up_dns}
 \end{enumerate}
 
@@ -491,6 +491,7 @@ Set up your master DNS server to forward the Eucalyptus subdomain to the primary
 \begin{enumerate}
 \item Open /etc/named.conf and set up the eucadomain.yourdomain zone. 
 Add the following piece of code to the named.conf file.
+%%%%including the zone input file
 \lstinputlisting[language=bash]{zonefile}
 
 \end{enumerate}
