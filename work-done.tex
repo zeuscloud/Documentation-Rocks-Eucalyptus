@@ -324,5 +324,83 @@ NTP in Nodes
 \em{rocks run host vm-container “ntpd -u 0.pool.ntp.org ; hwclock --systohc”}
 
 %%%%%%%%%%%%%%%%%%%%%% END OF CHAPTER THREE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%% END OF CHAPTER THREE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%% CHAPTER Seven  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Configuring The Runtime Environment}
+\section{INTRODUCTION}
+After Eucalyptus is installed and registered, perform the tasks in this section to configure the runtime environment.
+\section{GENERATE ADMINISTRATOR CREDENTIALS}
+
+Now that you have installed and configured Eucalyptus, you're ready to start using it. To do so, you must generate credentials.
+
+NOTE: When you run the euca_conf --get-credentials command, you are requesting the access and secret keys and an X.509 certificate and key. You cannot retrieve an existing X.509 certificate and key. You can only generate a new pair.
+
+To generate a set of credentials :
+\begin{lstlisting}[language=bash]
+
+/usr/sbin/euca_conf --get-credentials admin.zip
+unzip admin.zip
+\end{lstlisting}
+Source the eucarc file.
+\begin{lstlisting}[language=bash]
+source eucarc
+\end{lstlisting}
+You are now able to run Eucalyptus commands.
+Tip :  When you source something remember not to change the present working directory since bash environment variable won't be available after you cd into another.
+
+\section{CONFIGURING THE STORAGE CONTROLLER (SC)}
+The Eucalyptus Storage Controller must be configured explicitly upon registration. This is a change from previous versions (pre-3.2) of Eucalyptus, which would configure themselves to a default configuration using a tgtd-based filesystem-backed storage controller to provide volumes and snapshots directly from the Storage Controller. As of version 3.2, Eucalyptus Storage Controllers automatically go to the BROKEN state after being registered with the CLC and will remain in that state until the administrator explicitly configures the SC by telling it which backend storage provider to use.
+
+
+Configuring the SC to use the local filesystem (Overlay):
+\begin{lstlisting}[language=bash]
+euca-modify-property -p zeus.storage.blockstoragemanager=overlay
+\end{lstlisting}
+\textit{Possible Output:}
+PROPERTY	PARTI00.storage.blockstoragemanager	overlay was <unset>
+You can check if it has been modified by executing the command :
+\begin{lstlisting}[language=bash]
+	euca-describe-properties | grep blockstoragemanager
+	\end{lstlisting}
+\section{CONFIGURING THE DNS AND THE SUBDOMAIN}
+
+Eucalyptus provides a DNS service that you can configure to:
+\begin{enumerate}
+\item Map instance IPs and Walrus bucket names to DNS host names
+\item Enable DNS delegation to support transparent failover in HA mode
+\end{enumerate}
+The DNS service will automatically try to bind to port 53. If port 53 cannot be used, DNS will be disabled. Typically, other system services like dnsmasq are configured to run on port 53. To use the Eucalyptus DNS service, you will need to disable these services.
+Before using the DNS service, configure the DNS subdomain name that you want Eucalyptus to handle as follows after the Eucalyptus Cloud Controller (CLC) has been started.
+
+Log in to the CLC (the primary CLC in an HA setup) and enter the following:
+\begin{lstlisting}[language=bash]
+euca-modify-property -p system.dns.dnsdomain=192.168.41.203
+\end{lstlisting}
+\section{TURN ON IP MAPPING}
+
+To turn on mapping of instance IPs to DNS host names:
+Enter the following command on the CLC (the primary CLC in an HA setup):
+\begin{lstlisting}[language=bash]
+euca-modify-property -p bootstrap.webservices.use_instance_dns=true
+
+\end{lstlisting}
+
+\section{CONFIGURE THE MASTER DNS SERVER}
+
+Note : Please read for DNS and creating a zone file before attempting to the steps given below.
+\begin{enumerate}
+\item A good wiki article is available for understanding dns http://en.wikipedia.org/wiki/Zone_file .
+\item A you should always look @ the original documentation provided by eucalyptus \url{http://www.eucalyptus.com/docs/eucalyptus/3.2/ig/setting_up_dns.html#setting_up_dns}
+\end{enumerate}
+
+
+Set up your master DNS server to forward the Eucalyptus subdomain to the primary and secondary CLC servers, which act as name servers.
+
+\begin{enumerate}
+\item Open /etc/named.conf and set up the eucadomain.yourdomain zone. 
+Add the following piece of code to the named.conf file.
+\lstinputlisting[language=bash]{zonefile}
+
+\end{enumerate}
 
