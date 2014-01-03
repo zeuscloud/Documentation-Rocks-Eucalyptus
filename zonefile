@@ -1,0 +1,25 @@
+zone "zeus.nitc.ac.in" {
+	type master;
+	file "/etc/named/db.zeus.nitc.ac.in";
+};
+#forward to master dns
+
+zone "eucalyptus.zeus.nitc.ac.in"{
+	type forward;
+	forward only;
+	forwarders { 192.168.41.203; };
+};
+$TTL 604800
+@ IN SOA zeus.nitc.ac.in. root.zeus.nitc.ac.in. (
+2 ; Serial
+604800 ; Refresh
+86400 ; Retry
+2419200 ; Expire
+604800 ) ; Negative Cache TTL
+;
+@ IN NS ns.zeus.nitc.ac.in.
+@ IN A 192.168.41.203
+;Assuming the master dns being the local campus dns 192.168.254.2
+ns.zeus.nitc.ac.in. IN A 192.168.41.203
+
+eucalyptus.zeus.nitc.ac.in. IN A 192.168.41.203
